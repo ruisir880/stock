@@ -12,4 +12,11 @@ public class Constant {
     public static final Pattern DATE_PATTERN = Pattern.compile("yyyy/MM/dd");
 
     public static final  double START_FUND = 100000;
+    public static final int SHARE_NUM = 5;
+    public static final double SHARE_MONEY = START_FUND/SHARE_NUM;
+
+    public static final double SHARE_10_MONEY = START_FUND*0.2;
+    public static final double SHARE_20_MONEY = START_FUND*0.2;
+    public static final double SHARE_60_MONEY = START_FUND*0.2;
+    public static final double SHARE_120_MONEY = START_FUND*0.2;
 }

@@ -3,7 +3,6 @@ package com.ray.logic.model;
 import org.joda.time.DateTime;
 
 import java.util.List;
-import java.util.Map;
 
 public class DealRecord {
     private String stockName;
@@ -13,27 +12,23 @@ public class DealRecord {
         this.stockName = stockName;
     }
 
-    public void addDealRecord(DateTime dateTime, double price, double dealAmount, Map<MAModel,Double> maPrice ){
-        records.add(new Record(dateTime,price,dealAmount));
+    public void addDealRecord(DealType dealType,DateTime dateTime, double price, double dealAmount, MAModel maModel ){
+        records.add(new Record(dealType,dateTime,price,dealAmount,maModel));
     }
 
     class Record{
+        private DealType dealType;
         private DateTime dealTime;
         private double price;
         private double dealAmount;
-        private Map<MAModel,Double> maPrice;
+        private MAModel maModel;
 
-        public Record(DateTime dealTime, double price, double dealAmount) {
+        public Record(DealType dealType, DateTime dealTime, double price, double dealAmount, MAModel maModel) {
+            this.dealType = dealType;
             this.dealTime = dealTime;
             this.price = price;
             this.dealAmount = dealAmount;
-        }
-
-        public Record(DateTime dealTime, double price, double dealAmount, Map<MAModel, Double> maPrice) {
-            this.dealTime = dealTime;
-            this.price = price;
-            this.dealAmount = dealAmount;
-            this.maPrice = maPrice;
+            this.maModel = maModel;
         }
 
         public DateTime getDealTime() {
@@ -60,12 +55,20 @@ public class DealRecord {
             this.dealAmount = dealAmount;
         }
 
-        public Map<MAModel, Double> getMaPrice() {
-            return maPrice;
+        public DealType getDealType() {
+            return dealType;
         }
 
-        public void setMaPrice(Map<MAModel, Double> maPrice) {
-            this.maPrice = maPrice;
+        public void setDealType(DealType dealType) {
+            this.dealType = dealType;
+        }
+
+        public MAModel getMaModel() {
+            return maModel;
+        }
+
+        public void setMaModel(MAModel maModel) {
+            this.maModel = maModel;
         }
     }
 }
