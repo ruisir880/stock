@@ -2,11 +2,12 @@ package com.ray.logic.model;
 
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DealRecord {
     private String stockName;
-    private List<Record> records;
+    private List<Record> records = new ArrayList<>();
 
     public DealRecord(String stockName) {
         this.stockName = stockName;

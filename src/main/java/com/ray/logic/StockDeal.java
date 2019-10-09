@@ -162,7 +162,7 @@ public class StockDeal {
     }
 
     public boolean isAnotherDay(StockTuple tuple1, StockTuple tuple2) {
-        return tuple1.getTime().getDayOfYear() == tuple2.getTime().getDayOfYear();
+        return tuple1.getTime().getDayOfYear() != tuple2.getTime().getDayOfYear();
     }
 
     public void buy(StockTuple tuple,MAModel maModel){
@@ -220,5 +220,9 @@ public class StockDeal {
 
     public boolean isIn24h(StockTuple tuple1,StockTuple tuple2){
          return Math.abs(tuple1.getTime().getMillis()-tuple2.getTime().getMillis())<=86400000;
+    }
+
+    public DealRecord getDealRecord() {
+        return dealRecord;
     }
 }

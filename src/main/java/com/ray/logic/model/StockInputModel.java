@@ -1,10 +1,11 @@
 package com.ray.logic.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StockInputModel {
   private String name;
-  private List<StockTuple> stockTuples;
+  private List<StockTuple> stockTuples = new ArrayList<>();
 
   public StockInputModel(String name) {
     this.name = name;
@@ -20,12 +21,13 @@ public class StockInputModel {
 
   public void add(StockTuple tuple) {
       StockTuple current = getCurrent();
+      stockTuples.add(tuple);
       if(current == null){
           return;
       }
       current.setNext(tuple);
       tuple.setPre(current);
-      stockTuples.add(tuple);
+
   }
 
   public List<StockTuple> getStockTuples() {

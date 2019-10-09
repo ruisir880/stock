@@ -18,12 +18,13 @@ public class Reader {
 
         StockInputModel result = null;
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path)), "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path)), "GBK"));
 
             String lineTxt = null;
             String[] strs = null;
             String[] dates = null;
             result = new StockInputModel(br.readLine());
+            br.readLine();//读取头
             while ((lineTxt = br.readLine()) != null) {
                 strs = lineTxt.split(ROW_DATA_SPLIT);
                 dates = strs[0].split(DATE_SPLIT);
@@ -42,5 +43,12 @@ public class Reader {
         return result;
     }
 
+  public static void main(String[] args) {
+      StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\SH#600000.txtd");
+      System.out.println(model.getName());
 
+      StockDeal stockDeal = new StockDeal();
+      stockDeal.process(model);
+      stockDeal.getDealRecord();
+  }
 }

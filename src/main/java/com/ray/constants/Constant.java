@@ -8,7 +8,7 @@ public class Constant {
     public static final double SELL_RISE_PERCENT=1.08;
     public static final double SELL_DOWN_PERCENT=0.95;
     public static final String DATE_SPLIT = "/";
-    public static final String ROW_DATA_SPLIT = "   ";
+    public static final String ROW_DATA_SPLIT = "\t";
     public static final Pattern DATE_PATTERN = Pattern.compile("yyyy/MM/dd");
 
     public static final  double START_FUND = 100000;
