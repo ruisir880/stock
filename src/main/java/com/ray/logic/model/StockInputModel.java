@@ -19,10 +19,23 @@ public class StockInputModel {
   }
 
   public void add(StockTuple tuple) {
-    stockTuples.add(tuple);
+      StockTuple current = getCurrent();
+      if(current == null){
+          return;
+      }
+      current.setNext(tuple);
+      tuple.setPre(current);
+      stockTuples.add(tuple);
   }
 
   public List<StockTuple> getStockTuples() {
     return stockTuples;
+  }
+
+  public StockTuple getCurrent(){
+      if(stockTuples.size()==0){
+          return null;
+      }
+      return stockTuples.get(stockTuples.size()-1);
   }
 }

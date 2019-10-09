@@ -1,7 +1,6 @@
 package com.ray.logic;
 
 import com.ray.logic.model.*;
-import org.omg.CORBA.PRIVATE_MEMBER;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,12 +35,20 @@ public class StockDeal {
         double ma60 = getMaAvg(60);
         double ma120 = getMaAvg(120);
 
-        double highPrice;
-        double lowPrice;
+        StockTuple temp;
+        StockTuple lowPoint = input.getStockTuples().get(index);
+        StockTuple highPoint = input.getStockTuples().get(index);
 
         for (int i = index; i < input.getStockTuples().size(); i++) {
             currentStockTuple = input.getStockTuples().get(i);
             currentPrice = currentStockTuple.getPrice();
+
+            if(currentPrice <= lowPoint.getPrice()){
+                lowPoint = currentStockTuple;
+            }else if(currentPrice >= highPoint.getPrice()){
+                highPoint = currentStockTuple;
+            }
+
             if (i != index && isAnotherDay(input.getStockTuples().get(i - 1), currentStockTuple)) {
                 priceList.removeFirst();
                 priceList.add(currentPrice);
@@ -50,6 +57,39 @@ public class StockDeal {
                 ma20 = getMaAvg(20);
                 ma60 = getMaAvg(60);
                 ma120 = getMaAvg(120);
+            }
+
+            //判断8出
+            if(currentStockTuple.getPrice() >= SELL_RISE_PERCENT*lowPoint.getPrice()){
+                if(isIn24h(currentStockTuple,lowPoint)){
+                    //卖出;
+                    sell(currentStockTuple,MAModel.RISE8);
+                }else {
+                    lowPoint = currentStockTuple;
+                    temp = currentStockTuple;
+                    while (isIn24h(temp,currentStockTuple)){
+                        if(lowPoint.getPrice() > temp.getPrice()){
+                            lowPoint = temp;
+                        }
+                        temp = temp.getPre();
+                    }
+                }
+            }
+            //判断5出
+            if(currentStockTuple.getPrice() <= SELL_DOWN_PERCENT*highPoint.getPrice()){
+                if(isIn24h(highPoint,currentStockTuple)){
+                    //卖出;
+                    sell(currentStockTuple,MAModel.DOWN5);
+                }else {
+                    highPoint = currentStockTuple;
+                    temp = currentStockTuple;
+                    while (isIn24h(temp,currentStockTuple)){
+                        if(temp.getPrice() > highPoint.getPrice()){
+                            highPoint = temp;
+                        }
+                        temp = temp.getPre();
+                    }
+                }
             }
 
             //金叉买入
@@ -101,7 +141,7 @@ public class StockDeal {
             if (isAnotherDay(stockTuples.get(index), stockTuples.get(index - 1))) {
                 priceList.add(stockTuples.get(index - 1).getPrice());
             }
-            if (priceList.size() == MAModel.MA120.getDAYNUM() - 1) {
+            if (priceList.size() == MAModel.MA120.getDayNum() - 1) {
                 break;
             }
         }
@@ -118,7 +158,7 @@ public class StockDeal {
                 break;
             }
         }
-        return result/n;
+        return result/n-1;
     }
 
     public boolean isAnotherDay(StockTuple tuple1, StockTuple tuple2) {
@@ -132,13 +172,13 @@ public class StockDeal {
                 handNum =hand10 = (int) (SHARE_10_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA20:
-                handNum=  hand20=(int) (SHARE_20_MONEY/(tuple.getPrice()*HAND));
+                handNum = hand20=(int) (SHARE_20_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA60:
-                handNum =hand60=(int) (SHARE_60_MONEY/(tuple.getPrice()*HAND));
+                handNum = hand60=(int) (SHARE_60_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA120:
-                handNum =hand120=(int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
+                handNum = hand120=(int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
                 break;
         }
         remainMoney = remainMoney - tuple.getPrice()*HAND* handNum;
@@ -167,8 +207,18 @@ public class StockDeal {
                 handNum =hand120;
                 hand120=0;
                 break;
+            case DOWN5:
+            case RISE8:
+                handNum =hand120;
+                hand120=0;
+                break;
+
         }
         remainMoney = remainMoney + tuple.getPrice()*HAND* handNum;
         dealRecord.addDealRecord(DealType.SELL, tuple.getTime(), tuple.getPrice(), handNum, maModel);
+    }
+
+    public boolean isIn24h(StockTuple tuple1,StockTuple tuple2){
+         return Math.abs(tuple1.getTime().getMillis()-tuple2.getTime().getMillis())<=86400000;
     }
 }
