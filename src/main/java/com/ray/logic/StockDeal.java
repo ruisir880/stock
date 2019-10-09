@@ -2,6 +2,7 @@ package com.ray.logic;
 
 import com.ray.logic.model.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,10 +20,7 @@ public class StockDeal {
     private boolean hasBuyMa60 = false;
     private boolean hasBuyMa120 = false;
 
-    private int hand10= 0;
-    private int hand20= 0;
-    private int hand60= 0;
-    private int hand120= 0;
+    private List<Integer> handNumList = new ArrayList<>();
 
     public void process(StockInputModel input) {
         dealRecord  = new DealRecord(input.getName());
@@ -169,16 +167,16 @@ public class StockDeal {
         int handNum = 0;
         switch (maModel){
             case MA10:
-                handNum =hand10 = (int) (SHARE_10_MONEY/(tuple.getPrice()*HAND));
+                handNum =(int) (SHARE_10_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA20:
-                handNum = hand20=(int) (SHARE_20_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (SHARE_20_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA60:
-                handNum = hand60=(int) (SHARE_60_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (SHARE_60_MONEY/(tuple.getPrice()*HAND));
                 break;
             case MA120:
-                handNum = hand120=(int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
                 break;
         }
         remainMoney = remainMoney - tuple.getPrice()*HAND* handNum;
@@ -189,8 +187,8 @@ public class StockDeal {
     }
 
     public void sell(StockTuple tuple,MAModel maModel){
-        int handNum= 0;
-        switch (maModel){
+        int handNum= handNumList.get(handNumList.size()-1);
+        /*switch (maModel){
             case MA10:
                 handNum =hand10 ;
                 hand10=0;
@@ -213,7 +211,7 @@ public class StockDeal {
                 hand120=0;
                 break;
 
-        }
+        }*/
         remainMoney = remainMoney + tuple.getPrice()*HAND* handNum;
         dealRecord.addDealRecord(DealType.SELL, tuple.getTime(), tuple.getPrice(), handNum, maModel);
     }
