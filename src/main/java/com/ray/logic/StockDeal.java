@@ -2,7 +2,6 @@ package com.ray.logic;
 
 import com.ray.logic.model.*;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class StockDeal {
     private boolean hasBuyMa60 = false;
     private boolean hasBuyMa120 = false;
 
-    private List<Integer> handNumList = new ArrayList<>();
+    private RemainHand remainHand = new RemainHand();
 
     public void process(StockInputModel input) {
         dealRecord  = new DealRecord(input.getName());
@@ -30,8 +29,8 @@ public class StockDeal {
         StockTuple currentStockTuple;
         double ma10 = getMaAvg(10);
         double ma20 = getMaAvg(20);
-        double ma60 = getMaAvg(60);
-        double ma120 = getMaAvg(120);
+        double ma60 = getMaAvg(30);
+        double ma120 = getMaAvg(40);
 
         StockTuple temp;
         StockTuple lowPoint = input.getStockTuples().get(index);
@@ -128,6 +127,8 @@ public class StockDeal {
 
             //8卖
         }
+        remainMoney = remainMoney+input.getStockTuples().get(input.getStockTuples().size()-1).getPrice()*HAND* remainHand.getHandSum();
+        dealRecord.setRemainMoney(remainMoney);
     }
 
     public int getMaList(StockInputModel input) {
@@ -156,7 +157,7 @@ public class StockDeal {
                 break;
             }
         }
-        return result/n-1;
+        return result/(n-1);
     }
 
     public boolean isAnotherDay(StockTuple tuple1, StockTuple tuple2) {
@@ -179,15 +180,16 @@ public class StockDeal {
                 handNum = (int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
                 break;
         }
+        remainHand.addHand(handNum);
         remainMoney = remainMoney - tuple.getPrice()*HAND* handNum;
         if(remainMoney <0){
             //todo log error;
         }
-        dealRecord.addDealRecord(DealType.BUY, tuple.getTime(), tuple.getPrice(), handNum, maModel);
+        dealRecord.addDealRecord(DealType.BUY, tuple.getTime(), tuple.getPrice(), handNum, maModel,remainMoney,remainHand.getHandSum());
     }
 
     public void sell(StockTuple tuple,MAModel maModel){
-        int handNum= handNumList.get(handNumList.size()-1);
+        int handNum= remainHand.subHand();
         /*switch (maModel){
             case MA10:
                 handNum =hand10 ;
@@ -213,7 +215,7 @@ public class StockDeal {
 
         }*/
         remainMoney = remainMoney + tuple.getPrice()*HAND* handNum;
-        dealRecord.addDealRecord(DealType.SELL, tuple.getTime(), tuple.getPrice(), handNum, maModel);
+        dealRecord.addDealRecord(DealType.SELL, tuple.getTime(), tuple.getPrice(), handNum, maModel,remainMoney,remainHand.getHandSum());
     }
 
     public boolean isIn24h(StockTuple tuple1,StockTuple tuple2){

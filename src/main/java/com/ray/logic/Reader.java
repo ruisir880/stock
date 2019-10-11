@@ -1,13 +1,11 @@
 package com.ray.logic;
 
+import com.ray.logic.model.DealRecord;
 import com.ray.logic.model.StockInputModel;
 import com.ray.logic.model.StockTuple;
 import org.joda.time.DateTime;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import static com.ray.constants.Constant.DATE_SPLIT;
 import static com.ray.constants.Constant.ROW_DATA_SPLIT;
@@ -43,6 +41,35 @@ public class Reader {
         return result;
     }
 
+    public static void write(DealRecord dealRecord) {
+        try{
+            File file = new File("C:\\Users\\rrui\\Desktop\\"+dealRecord.getStockName());
+            file.deleteOnExit();
+            file.createNewFile();
+
+            BufferedWriter br = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+            br.write("最终结余："+String.valueOf(dealRecord.getRemainMoney()));
+            br.newLine();
+            for(DealRecord.Record record : dealRecord.getRecords()){
+        br.write(
+            String.format(
+                "%s  %s  %s  %s  %s  %s  %s",
+                record.getDealTime(),
+                record.getDealType(),
+                record.getPrice(),
+                record.getDealAmount(),
+                record.getMaModel(),
+                record.getRemainMoney(),
+                record.getRemainHandSum()));
+                br.newLine();
+            }
+            br.flush();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
   public static void main(String[] args) {
       StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\SH#600000.txtd");
       System.out.println(model.getName());
@@ -50,5 +77,6 @@ public class Reader {
       StockDeal stockDeal = new StockDeal();
       stockDeal.process(model);
       stockDeal.getDealRecord();
+      write(stockDeal.getDealRecord());
   }
 }
