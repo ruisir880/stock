@@ -1,37 +1,43 @@
 package com.ray.logic;
 
-import com.ray.logic.model.DealRecord;
-import com.ray.logic.model.StockInputModel;
-import com.ray.logic.model.StockTuple;
+import com.ray.logic.model.*;
 import org.joda.time.DateTime;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.logging.SimpleFormatter;
 
 import static com.ray.constants.Constant.DATE_SPLIT;
 import static com.ray.constants.Constant.ROW_DATA_SPLIT;
 
 public class Reader {
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     public static StockInputModel readSourceFile(String path){
 
         StockInputModel result = null;
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path)), "GBK"));
+            File sourceFile = new File(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(sourceFile), "UTF-8"));
 
             String lineTxt = null;
             String[] strs = null;
             String[] dates = null;
-            result = new StockInputModel(br.readLine());
-            br.readLine();//读取头
+            String[] time = null;
+            result = new StockInputModel(sourceFile.getName());
+            //br.readLine();//读取头
             while ((lineTxt = br.readLine()) != null) {
-                strs = lineTxt.split(ROW_DATA_SPLIT);
+                strs = lineTxt.split("\\s+");
                 dates = strs[0].split(DATE_SPLIT);
+                time = strs[1].split(":");
                 DateTime dateTime = new DateTime(
                         Integer.valueOf(dates[0]),
                         Integer.valueOf(dates[1]),
                         Integer.valueOf(dates[2]),
-                        Integer.valueOf(strs[1].substring(0,2)),
-                        Integer.valueOf(strs[1].substring(2)));
+                        Integer.valueOf(time[0]),
+                        Integer.valueOf(time[1]),
+                        Integer.valueOf(time[2])
+                    );
                 result.add(new StockTuple(dateTime,Double.valueOf(strs[2])));
             }
             br.close();
@@ -54,11 +60,11 @@ public class Reader {
         br.write(
             String.format(
                 "%s  %s  %s  %s  %s  %s  %s",
-                record.getDealTime(),
-                record.getDealType(),
+                formatter.format(record.getDealTime().toDate()),
+                record.getDealType() == DealType.BUY? DealType.BUY +" ":DealType.SELL,
                 record.getPrice(),
-                record.getDealAmount(),
-                record.getMaModel(),
+                String.format("%04d", record.getDealAmount()),
+                record.getMaModel()!= MAModel.MA120? record.getMaModel()+" ":record.getMaModel(),
                 record.getRemainMoney(),
                 record.getRemainHandSum()));
                 br.newLine();
@@ -71,7 +77,7 @@ public class Reader {
     }
 
   public static void main(String[] args) {
-      StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\SH#600000.txtd");
+    StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\taget\\SH600017");
       System.out.println(model.getName());
 
       StockDeal stockDeal = new StockDeal();

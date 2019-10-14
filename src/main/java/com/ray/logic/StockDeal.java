@@ -18,6 +18,8 @@ public class StockDeal {
     private boolean hasBuyMa20 = false;
     private boolean hasBuyMa60 = false;
     private boolean hasBuyMa120 = false;
+    private boolean hasSellRise8 = false;
+    private boolean hasSellDown5 = false;
 
     private RemainHand remainHand = new RemainHand();
 
@@ -47,6 +49,9 @@ public class StockDeal {
             }
 
             if (i != index && isAnotherDay(input.getStockTuples().get(i - 1), currentStockTuple)) {
+                hasSellRise8=false;
+                hasSellDown5=false;
+                remainHand.dateChange();
                 priceList.removeFirst();
                 priceList.add(currentPrice);
 
@@ -60,7 +65,8 @@ public class StockDeal {
             if(currentStockTuple.getPrice() >= SELL_RISE_PERCENT*lowPoint.getPrice()){
                 if(isIn24h(currentStockTuple,lowPoint)){
                     //卖出;
-                    sell(currentStockTuple,MAModel.RISE8);
+                    if(!hasSellRise8 && sell(currentStockTuple,MAModel.RISE8))
+                        hasSellRise8=true;
                 }else {
                     lowPoint = currentStockTuple;
                     temp = currentStockTuple;
@@ -76,7 +82,8 @@ public class StockDeal {
             if(currentStockTuple.getPrice() <= SELL_DOWN_PERCENT*highPoint.getPrice()){
                 if(isIn24h(highPoint,currentStockTuple)){
                     //卖出;
-                    sell(currentStockTuple,MAModel.DOWN5);
+                    if(!hasSellDown5 && sell(currentStockTuple,MAModel.DOWN5))
+                        hasSellDown5=true;
                 }else {
                     highPoint = currentStockTuple;
                     temp = currentStockTuple;
@@ -90,39 +97,40 @@ public class StockDeal {
             }
 
             //金叉买入
-            if(!hasBuyMa10 && currentPrice >= ma10){
-                buy(currentStockTuple, MAModel.MA10);
-                hasBuyMa10 = true;
+            if(!hasBuyMa10 && currentPrice > ma10){
+                if (buy(currentStockTuple, MAModel.MA10)) {
+                  hasBuyMa10 = true;
+                }
             }
-            if(!hasBuyMa20 && currentPrice >= ma20){
-                buy(currentStockTuple, MAModel.MA20);
-                hasBuyMa20 = true;
+            if(!hasBuyMa20 && currentPrice > ma20){
+                if(buy(currentStockTuple, MAModel.MA20))
+                    hasBuyMa20 = true;
             }
-            if(!hasBuyMa60 && currentPrice >= ma60){
-                buy(currentStockTuple, MAModel.MA60);
-                hasBuyMa60 = true;
+            if(!hasBuyMa60 && currentPrice > ma60){
+                if(buy(currentStockTuple, MAModel.MA60))
+                    hasBuyMa60 = true;
             }
-            if(!hasBuyMa120 && currentPrice >= ma120){
-                buy(currentStockTuple, MAModel.MA120);
-                hasBuyMa120 = true;
+            if(!hasBuyMa120 && currentPrice > ma120){
+                if(buy(currentStockTuple, MAModel.MA120))
+                    hasBuyMa120 = true;
             }
 
             //死叉卖出
-            if(hasBuyMa10 && currentPrice <= ma10){
-                sell(currentStockTuple, MAModel.MA10);
-                hasBuyMa10 = false;
+            if(hasBuyMa10 && currentPrice < ma10){
+                if(sell(currentStockTuple, MAModel.MA10))
+                    hasBuyMa10 = false;
             }
-            if(hasBuyMa20 && currentPrice <= ma20){
-                sell(currentStockTuple, MAModel.MA20);
-                hasBuyMa20=false;
+            if(hasBuyMa20 && currentPrice < ma20){
+                if(sell(currentStockTuple, MAModel.MA20))
+                    hasBuyMa20=false;
             }
-            if(hasBuyMa60 && currentPrice <= ma60){
-                sell(currentStockTuple, MAModel.MA60);
-                hasBuyMa60 = false;
+            if(hasBuyMa60 && currentPrice < ma60){
+                if(sell(currentStockTuple, MAModel.MA60))
+                    hasBuyMa60 = false;
             }
-            if(hasBuyMa120 && currentPrice <= ma120){
-                sell(currentStockTuple, MAModel.MA120);
-                hasBuyMa120 = false;
+            if(hasBuyMa120 && currentPrice < ma120){
+                if(sell(currentStockTuple, MAModel.MA120))
+                    hasBuyMa120 = false;
             }
 
             //8卖
@@ -164,20 +172,25 @@ public class StockDeal {
         return tuple1.getTime().getDayOfYear() != tuple2.getTime().getDayOfYear();
     }
 
-    public void buy(StockTuple tuple,MAModel maModel){
+    public boolean buy(StockTuple tuple,MAModel maModel){
+        if(remainHand.getShare()>=5){
+            return false;
+        }
         int handNum = 0;
+
+        double shareMoney = remainMoney/(5-remainHand.getShare());
         switch (maModel){
             case MA10:
-                handNum =(int) (SHARE_10_MONEY/(tuple.getPrice()*HAND));
+                handNum =(int) (shareMoney/(tuple.getPrice()*HAND));
                 break;
             case MA20:
-                handNum = (int) (SHARE_20_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (shareMoney/(tuple.getPrice()*HAND));
                 break;
             case MA60:
-                handNum = (int) (SHARE_60_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (shareMoney/(tuple.getPrice()*HAND));
                 break;
             case MA120:
-                handNum = (int) (SHARE_120_MONEY/(tuple.getPrice()*HAND));
+                handNum = (int) (shareMoney/(tuple.getPrice()*HAND));
                 break;
         }
         remainHand.addHand(handNum);
@@ -186,9 +199,13 @@ public class StockDeal {
             //todo log error;
         }
         dealRecord.addDealRecord(DealType.BUY, tuple.getTime(), tuple.getPrice(), handNum, maModel,remainMoney,remainHand.getHandSum());
+        return true;
     }
 
-    public void sell(StockTuple tuple,MAModel maModel){
+    public boolean sell(StockTuple tuple,MAModel maModel){
+        if(remainHand.getShare()==0  || remainHand.getHandSum()-remainHand.getTodayHand()<=0){
+            return false;
+        }
         int handNum= remainHand.subHand();
         /*switch (maModel){
             case MA10:
@@ -216,6 +233,7 @@ public class StockDeal {
         }*/
         remainMoney = remainMoney + tuple.getPrice()*HAND* handNum;
         dealRecord.addDealRecord(DealType.SELL, tuple.getTime(), tuple.getPrice(), handNum, maModel,remainMoney,remainHand.getHandSum());
+        return true;
     }
 
     public boolean isIn24h(StockTuple tuple1,StockTuple tuple2){

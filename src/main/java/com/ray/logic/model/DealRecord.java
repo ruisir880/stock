@@ -14,11 +14,8 @@ public class DealRecord {
         this.stockName = stockName;
     }
 
-    public void addDealRecord(DealType dealType,DateTime dateTime, double price, double dealAmount, MAModel maModel ){
-        records.add(new Record(dealType,dateTime,price,dealAmount,maModel));
-    }
 
-    public void addDealRecord(DealType dealType,DateTime dateTime, double price, double dealAmount, MAModel maModel,double remainMoney,int handNum ){
+    public void addDealRecord(DealType dealType,DateTime dateTime, double price, int dealAmount, MAModel maModel,double remainMoney,int handNum ){
         records.add(new Record(dealType,dateTime,price,dealAmount,maModel,remainMoney,handNum));
     }
 
@@ -42,20 +39,13 @@ public class DealRecord {
         private DealType dealType;
         private DateTime dealTime;
         private double price;
-        private double dealAmount;
+        private int dealAmount;
         private MAModel maModel;
         private double remainMoney;
-        private double remainHandSum;
+        private int remainHandSum;
 
-        public Record(DealType dealType, DateTime dealTime, double price, double dealAmount, MAModel maModel) {
-            this.dealType = dealType;
-            this.dealTime = dealTime;
-            this.price = price;
-            this.dealAmount = dealAmount;
-            this.maModel = maModel;
-        }
 
-        public Record(DealType dealType, DateTime dealTime, double price, double dealAmount, MAModel maModel, double remainMoney, double remainHandSum) {
+        public Record(DealType dealType, DateTime dealTime, double price, int dealAmount, MAModel maModel, double remainMoney, int remainHandSum) {
             this.dealType = dealType;
             this.dealTime = dealTime;
             this.price = price;
@@ -81,11 +71,11 @@ public class DealRecord {
             this.price = price;
         }
 
-        public double getDealAmount() {
+        public int getDealAmount() {
             return dealAmount;
         }
 
-        public void setDealAmount(double dealAmount) {
+        public void setDealAmount(int dealAmount) {
             this.dealAmount = dealAmount;
         }
 
@@ -113,11 +103,11 @@ public class DealRecord {
             this.remainMoney = remainMoney;
         }
 
-        public double getRemainHandSum() {
+        public int getRemainHandSum() {
             return remainHandSum;
         }
 
-        public void setRemainHandSum(double remainHandSum) {
+        public void setRemainHandSum(int remainHandSum) {
             this.remainHandSum = remainHandSum;
         }
     }
