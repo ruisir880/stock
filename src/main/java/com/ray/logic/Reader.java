@@ -59,12 +59,12 @@ public class Reader {
             for(DealRecord.Record record : dealRecord.getRecords()){
         br.write(
             String.format(
-                "%s  %s  %s  %s  %s  %s  %s",
+                "%s  %4s  %8s  %6s  %6s  %10s  %s",
                 formatter.format(record.getDealTime().toDate()),
-                record.getDealType() == DealType.BUY? DealType.BUY +" ":DealType.SELL,
+                record.getDealType(),
                 record.getPrice(),
-                String.format("%04d", record.getDealAmount()),
-                record.getMaModel()!= MAModel.MA120? record.getMaModel()+" ":record.getMaModel(),
+                record.getDealAmount(),
+                record.getMaModel(),
                 record.getRemainMoney(),
                 record.getRemainHandSum()));
                 br.newLine();
