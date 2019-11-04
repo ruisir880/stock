@@ -19,4 +19,9 @@ public class Constant {
     public static final double SHARE_20_MONEY = START_FUND*0.2;
     public static final double SHARE_60_MONEY = START_FUND*0.2;
     public static final double SHARE_120_MONEY = START_FUND*0.2;
+
+  public static void main(String[] args) {
+        System.out.println(String.format("%10s",11));
+        System.out.println(String.format("%8s","ss"));
+  }
 }

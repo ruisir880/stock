@@ -77,7 +77,7 @@ public class Reader {
     }
 
   public static void main(String[] args) {
-    StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\taget\\SH600017");
+    StockInputModel model = readSourceFile("C:\\Users\\rrui\\Desktop\\stock\\taget\\SH600017");
       System.out.println(model.getName());
 
       StockDeal stockDeal = new StockDeal();
