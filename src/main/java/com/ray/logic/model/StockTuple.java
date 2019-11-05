@@ -1,15 +1,16 @@
 package com.ray.logic.model;
 
-
 import org.joda.time.DateTime;
+
+import java.math.BigDecimal;
 
 public class StockTuple {
     private DateTime time;
-    private double price;
+    private BigDecimal price;
     private StockTuple pre;
     private StockTuple next;
 
-    public StockTuple(DateTime time, double price) {
+    public StockTuple(DateTime time, BigDecimal price) {
         this.time = time;
         this.price = price;
     }
@@ -38,11 +39,11 @@ public class StockTuple {
         this.time = time;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 }
