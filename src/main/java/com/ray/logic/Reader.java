@@ -53,7 +53,10 @@ public class Reader {
 
     public static void write(DealRecord dealRecord) {
         try {
-            File file = new File("C:\\Users\\rui\\Desktop\\stockfiles\\generatedFiles\\" + dealRecord.getStockName());
+            File file =
+                    new File(
+                            "C:\\Users\\rui\\Desktop\\stockfiles\\generatedFiles\\"
+                                    + dealRecord.getStockName());
             file.deleteOnExit();
             file.createNewFile();
 
@@ -82,7 +85,8 @@ public class Reader {
     }
 
     public static void main(String[] args) {
-        StockInputModel model = readSourceFile("C:\\Users\\rui\\Desktop\\stockfiles\\sourceFiles\\SH600017");
+        StockInputModel model =
+                readSourceFile("C:\\Users\\rui\\Desktop\\stockfiles\\sourceFiles\\SZ300031");
         System.out.println(model.getName());
 
         StockDeal stockDeal = new StockDeal();
@@ -92,6 +96,6 @@ public class Reader {
             e.printStackTrace();
         }
         stockDeal.getDealRecord();
-        write(stockDeal.getDealRecord());
+        // write(stockDeal.getDealRecord());
     }
 }
