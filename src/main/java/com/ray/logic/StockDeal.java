@@ -38,31 +38,34 @@ public class StockDeal {
         StockTuple currentStockTuple;
         BigDecimal ma10 = getMaAvg(10);
         BigDecimal ma20 = getMaAvg(20);
-        BigDecimal ma60 = getMaAvg(30);
-        BigDecimal ma120 = getMaAvg(40);
+        BigDecimal ma60 = getMaAvg(60);
+        BigDecimal ma120 = getMaAvg(120);
 
-        StockTuple temp;
-        StockTuple lowPoint = input.getStockTuples().get(index);
+        // StockTuple lowPoint = input.getStockTuples().get(index);
         StockTuple highPoint = input.getStockTuples().get(index);
+        StockTuple openOrCloseTuple = input.getStockTuples().get(index);
         boolean toadySell = false;
 
         for (int i = index; i < input.getStockTuples().size(); i++) {
             currentStockTuple = input.getStockTuples().get(i);
             currentPrice = currentStockTuple.getPrice();
 
-            if (currentPrice.compareTo(lowPoint.getPrice()) <= 0) {
-                lowPoint = currentStockTuple;
-            } else if (currentPrice.compareTo(highPoint.getPrice()) >= 0) {
+            if (currentPrice.compareTo(highPoint.getPrice()) >= 0) {
                 highPoint = currentStockTuple;
             }
 
             if (i != index && isAnotherDay(input.getStockTuples().get(i - 1), currentStockTuple)) {
+                StockTuple closeTuple = input.getStockTuples().get(i - 1);
                 toadySell = false;
                 hasSellRise8 = false;
-                hasSellDown5 = false;
                 remainStock.dateChange();
                 priceList.removeFirst();
-                priceList.add(input.getStockTuples().get(i - 1).getPrice());
+                priceList.addLast(closeTuple.getPrice());
+
+                openOrCloseTuple =
+                        closeTuple.getPrice().compareTo(currentStockTuple.getPrice()) > 0
+                                ? currentStockTuple
+                                : input.getStockTuples().get(i - 1);
 
                 ma10 = getMaAvg(10);
                 ma20 = getMaAvg(20);
@@ -71,33 +74,24 @@ public class StockDeal {
 
                 // 跌5卖出后，如果收盘价仍高于均值，买入
                 if (hasSellDown5
-                        && input.getStockTuples().get(i - 1).getPrice().compareTo(ma10) >= 0) {
+                        && (closeTuple.getPrice().compareTo(ma10) >= 0
+                                || closeTuple.getPrice().compareTo(ma20) >= 0)) {
                     buy(input.getStockTuples().get(i - 1), MAModel.DOWN5_CLOSE_BUY, ma10);
-                    hasSellDown5 = true;
                 }
+                hasSellDown5 = false;
+                printRemainMoney(closeTuple);
             }
 
             // 判断8出
             if (currentStockTuple
                             .getPrice()
-                            .compareTo(SELL_RISE_PERCENT.multiply(lowPoint.getPrice()))
+                            .compareTo(SELL_RISE_PERCENT.multiply(openOrCloseTuple.getPrice()))
                     >= 0) {
-                if (isIn24h(currentStockTuple, lowPoint)) {
-                    // 卖出;
-                    if (!hasSellRise8
-                            && sell(currentStockTuple, MAModel.RISE8, lowPoint.getPrice())) {
-                        hasSellRise8 = true;
-                        toadySell = true;
-                    }
-                } else {
-                    lowPoint = currentStockTuple;
-                    temp = currentStockTuple;
-                    while (isIn24h(temp, currentStockTuple)) {
-                        if (lowPoint.getPrice().compareTo(temp.getPrice()) > 0) {
-                            lowPoint = temp;
-                        }
-                        temp = temp.getPre();
-                    }
+                // 卖出;
+                if (!hasSellRise8
+                        && sell(currentStockTuple, MAModel.RISE8, openOrCloseTuple.getPrice())) {
+                    hasSellRise8 = true;
+                    toadySell = true;
                 }
             }
             // 判断5出
@@ -176,7 +170,6 @@ public class StockDeal {
             // 手里仓位清0，最高仓位点，更改
             if (toadySell && remainStock.getTotalStockNum() == 0) {
                 highPoint = currentStockTuple;
-                lowPoint = currentStockTuple;
             }
         }
         remainMoney =
@@ -187,6 +180,7 @@ public class StockDeal {
                                 .multiply(new BigDecimal(remainStock.getTotalStockNum())));
 
         dealRecord.setRemainMoney(remainMoney);
+        log.info("最后总额：" + remainMoney);
     }
 
     public int getMaList(StockInputModel input) {
@@ -305,5 +299,15 @@ public class StockDeal {
 
     public DealRecord getDealRecord() {
         return dealRecord;
+    }
+
+    private void printRemainMoney(StockTuple input) {
+        BigDecimal totalMoney =
+                remainMoney.add(
+                        input.getPrice().multiply(new BigDecimal(remainStock.getTotalStockNum())));
+        log.info(
+                String.format(
+                        "%s 收盘价：%s 最后总额：%s",
+                        Util.getEndDate(input.getTime().toDate()), input.getPrice(), totalMoney));
     }
 }
