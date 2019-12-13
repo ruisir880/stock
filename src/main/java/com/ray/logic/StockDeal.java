@@ -3,23 +3,21 @@ package com.ray.logic;
 import com.ray.Util;
 import com.ray.constants.Constant;
 import com.ray.exception.TradLogicException;
-import com.ray.logic.model.*;
+import com.ray.logic.model.MAModel;
+import com.ray.logic.model.RemainStock;
+import com.ray.logic.model.StockInputModel;
+import com.ray.logic.model.StockTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.ray.constants.Constant.*;
 
 public class StockDeal {
     private static final Logger log = LoggerFactory.getLogger(StockDeal.class);
-    // private int HAND = 100;
     private BigDecimal remainMoney = START_FUND;
-
-    private LinkedList<BigDecimal> priceList;
-    private DealRecord dealRecord;
 
     private boolean hasBuyMa10 = false;
     private boolean hasBuyMa20 = false;
@@ -31,15 +29,11 @@ public class StockDeal {
     private RemainStock remainStock = new RemainStock();
 
     public void process(StockInputModel input) throws TradLogicException {
-        dealRecord = new DealRecord(input.getName());
-        int index = getMaList(input);
+        DealLogic dealLogic = new DealLogic();
+        int index = getStartIndex(input, dealLogic);
 
         BigDecimal currentPrice;
         StockTuple currentStockTuple;
-        BigDecimal ma10 = getMaAvg(10);
-        BigDecimal ma20 = getMaAvg(20);
-        BigDecimal ma60 = getMaAvg(30);
-        BigDecimal ma120 = getMaAvg(40);
 
         StockTuple temp;
         StockTuple lowPoint = input.getStockTuples().get(index);
@@ -57,21 +51,19 @@ public class StockDeal {
             }
 
             if (i != index && isAnotherDay(input.getStockTuples().get(i - 1), currentStockTuple)) {
+                dealLogic.addClosePrice(input.getStockTuples().get(i - 1));
                 toadySell = false;
                 hasSellRise8 = false;
                 hasSellDown5 = false;
                 remainStock.dateChange();
-                priceList.removeFirst();
-                priceList.add(input.getStockTuples().get(i - 1).getPrice());
-
-                ma10 = getMaAvg(10);
-                ma20 = getMaAvg(20);
-                ma60 = getMaAvg(60);
-                ma120 = getMaAvg(120);
 
                 // 跌5卖出后，如果收盘价仍高于均值，买入
                 if (hasSellDown5
-                        && input.getStockTuples().get(i - 1).getPrice().compareTo(ma10) >= 0) {
+                        && input.getStockTuples()
+                                        .get(i - 1)
+                                        .getPrice()
+                                        .compareTo(dealLogic.getMA10())
+                                >= 0) {
                     buy(input.getStockTuples().get(i - 1), MAModel.DOWN5_CLOSE_BUY);
                     hasSellDown5 = true;
                 }
@@ -113,29 +105,29 @@ public class StockDeal {
             }
 
             // 金叉买入
-            if (!hasBuyMa10 && currentPrice.compareTo(ma10) > 0) {
+            if (!hasBuyMa10 && currentPrice.compareTo(dealLogic.getMA10()) > 0) {
                 if (buy(currentStockTuple, MAModel.MA10)) {
                     hasBuyMa10 = true;
                 }
             }
-            if (!hasBuyMa20 && currentPrice.compareTo(ma20) > 0) {
+            if (!hasBuyMa20 && currentPrice.compareTo(dealLogic.getMA20()) > 0) {
                 if (buy(currentStockTuple, MAModel.MA20)) {
                     hasBuyMa20 = true;
                 }
             }
-            if (!hasBuyMa60 && currentPrice.compareTo(ma60) > 0) {
+            if (!hasBuyMa60 && currentPrice.compareTo(dealLogic.getMA60()) > 0) {
                 if (buy(currentStockTuple, MAModel.MA60)) {
                     hasBuyMa60 = true;
                 }
             }
-            if (!hasBuyMa120 && currentPrice.compareTo(ma120) > 0) {
+            if (!hasBuyMa120 && currentPrice.compareTo(dealLogic.getMA120()) > 0) {
                 if (buy(currentStockTuple, MAModel.MA120)) {
                     hasBuyMa120 = true;
                 }
             }
 
             // 死叉卖出
-            if (hasBuyMa10 && currentPrice.compareTo(ma10) < 0) {
+            if (hasBuyMa10 && currentPrice.compareTo(dealLogic.getMA10()) < 0) {
                 if (sell(currentStockTuple, MAModel.MA10)) {
                     hasBuyMa10 = false;
                     toadySell = true;
@@ -143,7 +135,7 @@ public class StockDeal {
                     hasBuyMa10 = false;
                 }
             }
-            if (hasBuyMa20 && currentPrice.compareTo(ma20) < 0) {
+            if (hasBuyMa20 && currentPrice.compareTo(dealLogic.getMA20()) < 0) {
                 if (sell(currentStockTuple, MAModel.MA20)) {
                     hasBuyMa20 = false;
                     toadySell = true;
@@ -151,7 +143,7 @@ public class StockDeal {
                     hasBuyMa20 = false;
                 }
             }
-            if (hasBuyMa60 && currentPrice.compareTo(ma60) < 0) {
+            if (hasBuyMa60 && currentPrice.compareTo(dealLogic.getMA60()) < 0) {
                 if (sell(currentStockTuple, MAModel.MA60)) {
                     hasBuyMa60 = false;
                     toadySell = true;
@@ -159,7 +151,7 @@ public class StockDeal {
                     hasBuyMa60 = false;
                 }
             }
-            if (hasBuyMa120 && currentPrice.compareTo(ma120) < 0) {
+            if (hasBuyMa120 && currentPrice.compareTo(dealLogic.getMA120()) < 0) {
                 if (sell(currentStockTuple, MAModel.MA120)) {
                     hasBuyMa120 = false;
                     toadySell = true;
@@ -180,44 +172,27 @@ public class StockDeal {
                                 .get(input.getStockTuples().size() - 1)
                                 .getPrice()
                                 .multiply(new BigDecimal(remainStock.getTotalStockNum())));
-
-        dealRecord.setRemainMoney(remainMoney);
     }
 
-    public int getMaList(StockInputModel input) {
-        priceList = new LinkedList<>();
-
+    private int getStartIndex(StockInputModel input, DealLogic dealLogic) {
         List<StockTuple> stockTuples = input.getStockTuples();
         int index;
         for (index = 1; index < stockTuples.size(); index++) {
             if (isAnotherDay(stockTuples.get(index), stockTuples.get(index - 1))) {
-                priceList.add(stockTuples.get(index - 1).getPrice());
+                dealLogic.addClosePrice(stockTuples.get(index - 1));
             }
-            if (priceList.size() == MAModel.MA120.getDayNum() - 1) {
+            if (dealLogic.canStart()) {
                 break;
             }
         }
         return index;
     }
 
-    public BigDecimal getMaAvg(int n) {
-        BigDecimal result = BigDecimal.ZERO;
-        int num = 1;
-        for (int i = priceList.size() - 1; i >= 0; i--) {
-            result = result.add(priceList.get(i));
-            num++;
-            if (num == n) {
-                break;
-            }
-        }
-        return Util.divide(result, new BigDecimal(n - 1));
-    }
-
-    public boolean isAnotherDay(StockTuple tuple1, StockTuple tuple2) {
+    private boolean isAnotherDay(StockTuple tuple1, StockTuple tuple2) {
         return tuple1.getTime().getDayOfYear() != tuple2.getTime().getDayOfYear();
     }
 
-    public boolean buy(StockTuple tuple, MAModel maModel) throws TradLogicException {
+    private boolean buy(StockTuple tuple, MAModel maModel) throws TradLogicException {
         if (remainStock.getShare() >= 5) {
             throw new TradLogicException(
                     "Stock shrare is bigger than 5. please check code." + maModel.name());
@@ -234,15 +209,6 @@ public class StockDeal {
         if (remainMoney.compareTo(BigDecimal.ZERO) < 0) {
             throw new TradLogicException("Remain money less than 0." + maModel.name());
         }
-        dealRecord.addDealRecord(
-                DealType.BUY,
-                tuple.getTime(),
-                tuple.getPrice(),
-                buyNum,
-                maModel,
-                remainMoney,
-                remainStock.getTotalStockNum(),
-                remainStock.getShare());
         log.info(
                 String.format(
                         "%s %s 买入, 有%s份,ma10:%s ma20:%s ma60:%s ma120:%s ",
@@ -256,7 +222,7 @@ public class StockDeal {
         return true;
     }
 
-    public boolean sell(StockTuple tuple, MAModel maModel) throws TradLogicException {
+    private boolean sell(StockTuple tuple, MAModel maModel) throws TradLogicException {
         if (remainStock.getCanSellNum() == 0) {
 
             /* log.warn(
@@ -272,15 +238,7 @@ public class StockDeal {
         int sellStockNum = remainStock.subStockNum(tuple);
 
         remainMoney = remainMoney.add(tuple.getPrice().multiply(BigDecimal.valueOf(sellStockNum)));
-        dealRecord.addDealRecord(
-                DealType.SELL,
-                tuple.getTime(),
-                tuple.getPrice(),
-                sellStockNum,
-                maModel,
-                remainMoney,
-                remainStock.getTotalStockNum(),
-                remainStock.getShare());
+
         log.info(
                 String.format(
                         "%s %s 卖出 %s, 有%s份,ma10:%s ma20:%s ma60:%s ma120:%s",
@@ -295,11 +253,7 @@ public class StockDeal {
         return true;
     }
 
-    public boolean isIn24h(StockTuple tuple1, StockTuple tuple2) {
+    private boolean isIn24h(StockTuple tuple1, StockTuple tuple2) {
         return Math.abs(tuple1.getTime().getMillis() - tuple2.getTime().getMillis()) <= 86400000;
-    }
-
-    public DealRecord getDealRecord() {
-        return dealRecord;
     }
 }

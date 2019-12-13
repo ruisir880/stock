@@ -19,6 +19,8 @@ public class Constant {
     public static final BigDecimal SHARE_60_MONEY = START_FUND.multiply(new BigDecimal(0.2));
     public static final BigDecimal SHARE_120_MONEY = START_FUND.multiply(new BigDecimal(0.2));
 
+    public static final int RISING_DAYS = 3;
+
     public static void main(String[] args) {
         System.out.println(String.format("%10s", 11));
         System.out.println(String.format("%8s", "ss"));
