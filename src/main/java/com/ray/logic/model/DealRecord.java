@@ -2,21 +2,38 @@ package com.ray.logic.model;
 
 import org.joda.time.DateTime;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DealRecord {
     private String stockName;
     private List<Record> records = new ArrayList<>();
-    private double remainMoney;
+    private BigDecimal remainMoney;
 
     public DealRecord(String stockName) {
         this.stockName = stockName;
     }
 
-
-    public void addDealRecord(DealType dealType,DateTime dateTime, double price, int dealAmount, MAModel maModel,double remainMoney,int handNum ){
-        records.add(new Record(dealType,dateTime,price,dealAmount,maModel,remainMoney,handNum));
+    public void addDealRecord(
+            DealType dealType,
+            DateTime dateTime,
+            BigDecimal price,
+            int dealAmount,
+            MAModel maModel,
+            BigDecimal remainMoney,
+            int stockNum,
+            int share) {
+        records.add(
+                new Record(
+                        dealType,
+                        dateTime,
+                        price,
+                        dealAmount,
+                        maModel,
+                        remainMoney,
+                        stockNum,
+                        share));
     }
 
     public String getStockName() {
@@ -27,32 +44,41 @@ public class DealRecord {
         return records;
     }
 
-    public double getRemainMoney() {
+    public BigDecimal getRemainMoney() {
         return remainMoney;
     }
 
-    public void setRemainMoney(double remainMoney) {
+    public void setRemainMoney(BigDecimal remainMoney) {
         this.remainMoney = remainMoney;
     }
 
-    public class Record{
+    public class Record {
         private DealType dealType;
         private DateTime dealTime;
-        private double price;
+        private BigDecimal price;
         private int dealAmount;
         private MAModel maModel;
-        private double remainMoney;
-        private int remainHandSum;
+        private BigDecimal remainMoney;
+        private int remainStockNum;
+        private int share;
 
-
-        public Record(DealType dealType, DateTime dealTime, double price, int dealAmount, MAModel maModel, double remainMoney, int remainHandSum) {
+        public Record(
+                DealType dealType,
+                DateTime dealTime,
+                BigDecimal price,
+                int dealAmount,
+                MAModel maModel,
+                BigDecimal remainMoney,
+                int remainStockNum,
+                int share) {
             this.dealType = dealType;
             this.dealTime = dealTime;
             this.price = price;
             this.dealAmount = dealAmount;
             this.maModel = maModel;
             this.remainMoney = remainMoney;
-            this.remainHandSum = remainHandSum;
+            this.remainStockNum = remainStockNum;
+            this.share = share;
         }
 
         public DateTime getDealTime() {
@@ -63,11 +89,11 @@ public class DealRecord {
             this.dealTime = dealTime;
         }
 
-        public double getPrice() {
+        public BigDecimal getPrice() {
             return price;
         }
 
-        public void setPrice(double price) {
+        public void setPrice(BigDecimal price) {
             this.price = price;
         }
 
@@ -95,20 +121,28 @@ public class DealRecord {
             this.maModel = maModel;
         }
 
-        public double getRemainMoney() {
+        public BigDecimal getRemainMoney() {
             return remainMoney;
         }
 
-        public void setRemainMoney(double remainMoney) {
+        public void setRemainMoney(BigDecimal remainMoney) {
             this.remainMoney = remainMoney;
         }
 
-        public int getRemainHandSum() {
-            return remainHandSum;
+        public int getRemainStockNum() {
+            return remainStockNum;
         }
 
-        public void setRemainHandSum(int remainHandSum) {
-            this.remainHandSum = remainHandSum;
+        public void setRemainStockNum(int remainStockNum) {
+            this.remainStockNum = remainStockNum;
+        }
+
+        public int getShare() {
+            return share;
+        }
+
+        public void setShare(int share) {
+            this.share = share;
         }
     }
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-12date{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>../log/stock.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>../log/DIDProcessor.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- keep 30 days' log history -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>60MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-12date{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+    </root>
+
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.apache.commons.beanutils" level="WARN"/>
+
+</configuration>
