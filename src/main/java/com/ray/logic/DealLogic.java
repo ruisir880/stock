@@ -53,11 +53,22 @@ public class DealLogic {
         return ma120;
     }
 
+    public StockTuple getClose() {
+        return closePriceList.get(closePriceList.size() - 1);
+    }
+
     public boolean isAllMARising() {
         return isMARising("MA10")
-                && isMARising("MA20")
-                && isMARising("MA60")
-                && isMARising("MA120");
+            && isMARising("MA20")
+            && isMARising("MA60")
+            && isMARising("MA120");
+    }
+
+    public boolean isDuoTou() {
+        return isAllMARising()
+            && ma10.compareTo(ma20) > 0
+            && ma20.compareTo(ma60) > 0
+            && ma60.compareTo(ma120) > 0;
     }
 
     // MA10<MA20<MA60<MA120  ;
@@ -73,22 +84,22 @@ public class DealLogic {
     // MA20>MA10>MA60>MA120 MA60 120 向上  MA10 向下
     public boolean isCondition3() {
         return ma20.compareTo(ma10) > 0
-                && ma10.compareTo(ma60) > 0
-                && ma60.compareTo(ma120) > 0
-                && isMARising("MA60")
-                && isMARising("MA120")
-                && !isMARising("MA10");
+            && ma10.compareTo(ma60) > 0
+            && ma60.compareTo(ma120) > 0
+            && isMARising("MA60")
+            && isMARising("MA120")
+            && !isMARising("MA10");
     }
 
     // MA60>MA20>MA10>MA120   MA60-120  向上 MA10 20向下
     public boolean isCondition4() {
         return ma60.compareTo(ma20) > 0
-                && ma20.compareTo(ma10) > 0
-                && ma10.compareTo(ma120) > 0
-                && isMARising("MA60")
-                && isMARising("MA120")
-                && !isMARising("MA10")
-                && !isMARising("MA20");
+            && ma20.compareTo(ma10) > 0
+            && ma10.compareTo(ma120) > 0
+            && isMARising("MA60")
+            && isMARising("MA120")
+            && !isMARising("MA10")
+            && !isMARising("MA20");
     }
 
     public boolean canStart() {
@@ -128,7 +139,7 @@ public class DealLogic {
         }
     }
 
-    private boolean isMARising(String key) {
+    public boolean isMARising(String key) {
         List<BigDecimal> list = maMap.get(key);
         for (int i = 1; i < Constant.RISING_DAYS; i++) {
             if (list.get(i).compareTo(list.get(i - 1)) < 0) {
@@ -136,5 +147,12 @@ public class DealLogic {
             }
         }
         return true;
+    }
+
+    public boolean isSatisfy() {
+        return isAllMARising()
+            && ma10.compareTo(ma20) > 0
+            && ma20.compareTo(ma60) > 0
+            && ma60.compareTo(ma120) > 0;
     }
 }
